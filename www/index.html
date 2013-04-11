@@ -84,7 +84,8 @@
 			<legend>Submit results for testing:</legend>
 			<p class="muted">You can help us test this service by submitting your name/handle and a comment indicating your actual location</p>
 				<form class="form-inline"
-					method="post" action="https://script.google.com/macros/s/AKfycbz11NN8ls7rMUWIYS3qCkNskHQL4IoEtDw7fH-5BjHl6tBIUQo/exec" name="theForm" id="theForm" target="hidden_iframe" id="GoogleForm">  
+					method="post" action="https://script.google.com/macros/s/AKfycbz11NN8ls7rMUWIYS3qCkNskHQL4IoEtDw7fH-5BjHl6tBIUQo/exec" 
+					name="theForm" id="theForm" target="hidden_iframe" id="GoogleForm">  
 					<input type="hidden" name="ID" id="ID" />  
 					<input type="hidden" name="Latitude" id="Latitude" />  
 					<input type="hidden" name="Longitude" id="Longitude"/>  
@@ -98,7 +99,7 @@
 					<input type="text" name="Comment" id="Comment" placeholder="Comment / actual location" />  
 					<br/>
 					<br/>
-						<input type="button" value="Submit" class="submit btn" onclick="checkBeforeSubmit();" />	
+						<input type="button" value="Submit" class="submit btn" onclick="PositionSubmit();" />	
 						<input type="button" value="Reload" class="other btn" onclick="reload();" />	
 						<span id="success"></span>  
 				</form>
@@ -106,6 +107,61 @@
             <hr>
 		</div> <!-- class="location-container" -->
 		<div class="request-container">
+			Filling in this form will generate a link that you can send to someone via email, text or social media.
+			 
+			When they click on the link the page will attempt to find their location, and email it to the address you enter here.
+
+			<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+			<form 
+				class="form-horizontal"
+				method="post" action="https://script.google.com/macros/s/AKfycbz8TSVsrCsN6of3UUPNM42wwwkrLaDsJt0CIKiO3U-lWFTO0so/exec" 
+				name="RequestForm" id="RequestForm" target="hidden_iframe" id="GoogleForm">
+			  <div class="control-group">
+				<label class="control-label" for="Name">Your Name:</label>
+				<div class="controls"><input type="text" name="Name" id="RequestName" placeholder="person or agency requesting"/></div>
+				<label class="control-label" for="Email">Your Email:</label>
+				<div class="controls"><input type="email" name="Email" id="RequestEmail" placeholder="where to send location" /></div>
+				<label class="control-label" for="ID">Request ID:</label>
+				<div class="controls"><input type="text" name="ID" id="RequestID" placeholder="unique tag for this request" maxlength="16"/></div>
+			  </div>	
+			  <div class="control-group">
+				<label class="control-label" for="Message">Message:<br/><small class="muted">for recipient</small></label> 
+				<div class="controls">
+					<textarea name="Message" maxlength="260" id="RequestMessage" rows="4" cols="50" placeholder="max 260 characters"></textarea>
+				</div>
+			  </div>	
+			  <input type="hidden" name="ShortURL" id="RequestShortURL"/>
+			  <input type="hidden" name="Agent" id="RequestAgent"/>
+			  <input type="hidden" name="IPAddress" id="RequestIPAddress"/>
+			  <input type="hidden" name="Version" id="RequestVersion"/>
+			  <div class="control-group">
+				<div class="controls">
+				<input type="button" value="Submit" class="btn submit" onclick="submitRequest();" />
+				<span id="success"></span>
+				</div>
+			  </div>
+			</form>
+
+			<!--
+			<div class="alert alert-success" id="Results">
+				Generated URL (click to test): <span id="TestShortURL">
+			</div>
+			-->
+
+			<div id="myModal" class="modal hide fade">
+			  <div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h3>Location Request URL</h3>
+			  </div>
+			  <div class="modal-body">
+				<p>Send this URL (click to test): <span id="RequestTestShortURL"></span></p>
+			  </div>
+			  <div class="modal-footer">
+				<a class="btn" data-dismiss="modal">Close</a>
+				<a id="emailRequestLink" class="btn btn-primary">Email</a>
+				<a id="textRequestLink" class="btn btn-primary">Text/SMS</a>
+			  </div>
+			</div>
 
 		</div> <!-- class="request-container"> -->
 
@@ -161,18 +217,25 @@
 		$('#plusLink').click(function(){ PlusLocation(); return false; });		
 		$("#AgentDisplay").text(navigator.userAgent);		
 		$("#Agent").val(navigator.userAgent);
-		
+
+		$('#textRequestLink').click(function(){ TextLocation(); return false; });		
+		$('#emailRequestLink').click(function(){ LocalEmailLocation(); return false; });		
+
 		$("#VersionDisplay").text(LOCATION_VERSION);		
 		$("#Version").val(LOCATION_VERSION);
 		if (window['google'] && google.loader.ClientLocation) {			
 			$("#LatitudeDisplay").text(google.loader.ClientLocation.latitude);			
 			$("#LongitudeDisplay").text(google.loader.ClientLocation.longitude);		}
+	
+		maxLength(document.getElementById("RequestMessage"));
+
 		$("#location-container").hide();
 		$("#request-container").show();
 		setCookie();
-		reload();	
+		//reload();	
 	});	
 	
+
 	function setCookie()
 	{
 		try
@@ -266,7 +329,7 @@
 		document.getElementById('theForm').submit();		
 		document.getElementById('success').innerHTML='Submitted'; }
 	
-	function checkBeforeSubmit(){		
+	function PositionSubmit(){		
 		$("#SubmitType").val("Manual");
 		//doSubmit();	
 		document.getElementById('theForm').submit();		
@@ -287,6 +350,90 @@
 			+ " " 			
 			+ xy[1].toFixed(0));	
 	}
+	
+	// request
+	function submitRequest(){
+		var login    = "o_2rnet2c4";
+		var api_key  = "R_e1eabf324c48983d594bcb6792315343";
+		var root_url = "http://find.yourlo.ca/tion/";
+
+		// make the url
+		var long_url = root_url
+			+ "?ID="
+			+ encodeURIComponent($("#RequestID").val())
+			+ "&from="
+			+ encodeURIComponent($("#RequestName").val())
+			+ "&email="
+			+ encodeURIComponent($("#RequestEmail").val())
+			+ "&message="
+			+ encodeURIComponent($("#RequestMessage").val());
+
+			
+		get_short_url(long_url, login, api_key, function(short_url) {
+			// set the value of the short url
+			$("#RequestShortURL").val(short_url);
+			// show the value to test the short url
+			$("#RequestTestShortURL").html("<a href='" + short_url + "' target='_blank'>"+short_url+"</a>");
+			$('#myModal').modal({keyboard: true});
+
+			// submit the form
+			$("#RequestForm").submit();
+			$("#RequestSuccess").innerHTML='Submitted';
+		});
+
+	}				
+	
+	function get_short_url(long_url, login, api_key, func) {
+	
+		$.getJSON( "https://api-ssl.bitly.com/v3/shorten?callback=?", { 
+				"format": "json",
+				"apiKey": api_key,
+				"login": login,
+				"longUrl": long_url
+			},
+			function(response){
+				func(response.data.url);
+			});
+	}
+	
+	function maxLength(el) {    
+		if (!('maxLength' in el)) {
+			var max = el.attributes.maxLength.value;
+			el.onkeypress = function () {
+				if (this.value.length >= max) return false;
+			};
+		}
+	}
+
+	function TextLocation()
+	{
+		var baseMailTo = "sms:?body=";
+		var href = baseMailTo + encodeURIComponent(
+			$("#RequestName").val()
+			+ " requesting location with message: "
+			+ $("#RequestMessage").val() 
+			+ " "
+			+ $("#RequestShortURL").val()
+		);
+		window.open(href ,'_blank');
+	}
+	
+	function LocalEmailLocation() {		
+
+		var baseMailTo = "mailto:?subject=YourLo.ca/tion&body=";
+			
+		var href = baseMailTo + encodeURIComponent(
+			$("#RequestName").val()
+			+ " is requesting your location and has the following message:\n\n"
+			+ $("#RequestMessage").val() 
+			+ "\n\nClicking on the following link will take you to a web page that will attempt to determine your location, and automatically send it to "
+			+ $("#RequestName").val()
+			+"\n\n"
+			+$("#RequestShortURL").val()
+			+"\n\n");	
+		window.open(href ,'_blank');
+	}	
+	
 </script>
         <script type="text/javascript" src="phonegap.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
