@@ -31,7 +31,7 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </a>
-                    <a class="brand" href="#">YourLo.ca/tion</a>
+                    <a class="brand" id="homelink" href="#"><img src="img/Location-16-white-glow.png" />&nbsp;YourLo.ca/tion</a>
                     <div class="nav-collapse collapse">
                         <ul class="nav">
                             <li class="active"><a href="#">Home</a></li>
@@ -61,7 +61,7 @@
         </div>
 
         <div class="container">
-
+		<div class="location-container">
 			<div id="location">	
 				<div class="alert" id="statusMessage">Loading...</div>	
 				<div class="row">
@@ -104,8 +104,12 @@
 				</form>
 			</fieldset>
             <hr>
+		</div> <!-- class="location-container" -->
+		<div class="request-container">
 
-			<footer>
+		</div> <!-- class="request-container"> -->
+
+		<footer>
 			<div class="row">
 				<div class="span4">
 				  <span style="float:left">
@@ -163,6 +167,8 @@
 		if (window['google'] && google.loader.ClientLocation) {			
 			$("#LatitudeDisplay").text(google.loader.ClientLocation.latitude);			
 			$("#LongitudeDisplay").text(google.loader.ClientLocation.longitude);		}
+		$("#location-container").hide();
+		$("#request-container").show();
 		setCookie();
 		reload();	
 	});	
