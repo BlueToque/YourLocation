@@ -1,4 +1,4 @@
-var LOCATION_VERSION=2.3;	
+var LOCATION_VERSION=2.4m;	
 
 /* a component of guid generation */
 function s4() {
