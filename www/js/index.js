@@ -24,9 +24,6 @@ var app = {
         document.addEventListener('deviceready', this.deviceready, false);
     },
     deviceready: function() {
-        gaPlugin = window.plugins.gaPlugin;
-        gaPlugin.init(nativePluginResultHandler, nativePluginErrorHandler, "UA-38882607-4", 10);
-        
         // This is an event handler function, which means the scope is the event.
         // So, we must explicitly called `app.report()` instead of `this.report()`.
         app.report('deviceready');
@@ -44,10 +41,3 @@ var app = {
     }
 };
 
-function nativePluginResultHandler (result) {
-    console.log('nativePluginResultHandler: '+result);
-}
-
-function nativePluginErrorHandler (error) {
-    console.log('nativePluginErrorHandler: '+error);
-}
