@@ -21,7 +21,8 @@
         The 'device' permission is required for the 'deviceready' event.
     -->
     <feature name="http://api.phonegap.com/1.0/device" />
-
+    <feature name="http://api.phonegap.com/1.0/geolocation"/>
+    
     <!--
         If you do not want any permissions to be added to your app, add the
         following tag to your config.xml; you will still have the INTERNET
@@ -80,8 +81,6 @@
     <gap:splash src="res/screen/ios/screen-ipad-landscape.png"     gap:platform="ios"     width="1024" height="768" />
     <gap:splash src="res/screen/windows-phone/screen-portrait.jpg" gap:platform="winphone" />
 
-    <!-- Google Analytics -->
-    <gap:plugin name="GAPlugin" />
     <!--
         Define access to external domains.
 
