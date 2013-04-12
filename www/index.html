@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>YourLo.ca/tion</title>
+        <title>YourLo.ca/tion Mobile</title>
         <meta name="description" content="">
 	<meta name="viewport" content="width=device-width">
 
@@ -31,37 +31,50 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </a>
-                    <a class="brand" id="homelink" href="#"><img src="img/Location-16-white-glow.png" />&nbsp;YourLo.ca/tion</a>
+                    <a class="brand" id="homelink" href="#"><img src="img/Location-16-white-glow.png" />&nbsp;YourLo.ca/tion <i>Mobile</i></a>
                     <div class="nav-collapse collapse">
                         <ul class="nav">
                             <li class="active"><a href="#">Home</a></li>
+                            <li><a href="#about">Location</a></li>
                             <li><a href="#about">About</a></li>
                             <li><a href="#contact">Contact</a></li>
-                            <li class="dropdown">
-                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
-                                <ul class="dropdown-menu">
-                                    <li><a href="#">Action</a></li>
-                                    <li><a href="#">Another action</a></li>
-                                    <li><a href="#">Something else here</a></li>
-                                    <li class="divider"></li>
-                                    <li class="nav-header">Nav header</li>
-                                    <li><a href="#">Separated link</a></li>
-                                    <li><a href="#">One more separated link</a></li>
-                                </ul>
-                            </li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">About...<b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li id="about"><a href="http://yourlo.ca/tion/about.md">About</a></li>
+									<li id="backstory"><a href="http://yourlo.ca/tion/backstory.md">Back Story</a></li>
+									<li id="contact"><a href="http://yourlo.ca/tion/contact.md">Contact</a></li>
+									<li class="divider"></li>
+									<li class="nav-header">Legal Stuff</li>
+									<li><a href="http://yourlo.ca/tion/terms_of_service.md">Terms of Service</a></li>
+									<li><a href="http://yourlo.ca/tion/privacy_policy.md">Privacy Policy</a></li>
+									<li><a href="http://yourlo.ca/tion/copyright.md">Copyright</a></li>
+								</ul>
+							</li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Docs...<b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="documentation.md">Documentation</a></li>
+									<li><a href="interpreting.md">Interpreting Results</a></li>
+									<li><a href="limitations.md">Limitations</a></li>
+									<li class="divider"></li>
+									<li class="nav-header">Development</li>
+									<li><a href="technical.md">Technical Details</a></li>
+									<li><a href="release_notes.md">Release Notes</a></li>
+									<li><a href="roadmap.md">Road Map</a></li>
+								</ul>
+							</li>
                         </ul>
-                        <form class="navbar-form pull-right">
-                            <input class="span2" type="text" placeholder="Email">
-                            <input class="span2" type="password" placeholder="Password">
-                            <button type="submit" class="btn">Sign in</button>
-                        </form>
                     </div><!--/.nav-collapse -->
                 </div>
             </div>
         </div>
 
-        <div class="container">
-		<div class="location-container">
+		<div id="markdownContainer" class="container">
+		</div>
+		
+        <div id="formContainer" class="container">
+		<div id="location-container">
 			<div id="location">	
 				<div class="alert" id="statusMessage">Loading...</div>	
 				<div class="row">
@@ -106,7 +119,8 @@
 			</fieldset>
             <hr>
 		</div> <!-- class="location-container" -->
-		<div class="request-container">
+
+		<div id="request-container">
 			Filling in this form will generate a link that you can send to someone via email, text or social media.
 			 
 			When they click on the link the page will attempt to find their location, and email it to the address you enter here.
@@ -232,10 +246,23 @@
 		$("#location-container").hide();
 		$("#request-container").show();
 		setCookie();
+		
+		// Markdown
+
+		// add an event handler to all anchors
+		// test if the link it referrs to ends with ".md"
+		// if it does, process the file as markdown
+		$("a").on("click", clickMarkdownLink);
+
+		if($.QueryString["md"]){
+			loadMarkDown($.QueryString["md"]); 
+			var id=$.QueryString["md"];
+			id=id.substring(0,id.indexOf('.'));
+			$("#"+id).addClass("active");}
+
 		//reload();	
 	});	
 	
-
 	function setCookie()
 	{
 		try
@@ -434,6 +461,62 @@
 		window.open(href ,'_blank');
 	}	
 	
+	//===========================================================
+	// Markdown link click
+	//
+	/// get an url paramter this way: $.QueryString["param"]
+	(function($) {
+		$.QueryString = (function(a) {
+			if (a == "") return {};
+			var b = {};
+			for (var i = 0; i < a.length; ++i)
+			{
+				var p=a[i].split('=');
+				if (p.length != 2) continue;
+				b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+			}
+			return b;
+		})(window.location.search.substr(1).split('&'))
+	})(jQuery);
+
+	function getPathFromUrl(url) {
+	  return url.split("?")[0];
+	}
+
+	// when you click on a markdown link, load the file
+	// if it's just a regular link do nothing
+	function clickMarkdownLink(event)
+	{
+		if (/.md$/.test(event.currentTarget.href)) {
+			var origin=getPathFromUrl(window.location.href);
+			var index=origin.lastIndexOf("/");
+			origin= origin.substr(0, index+1);
+			var filename = event.currentTarget.href.replace(origin,"");
+			window.location = origin+"?md="+ filename;
+			return false;
+		}
+		return true;
+	}	
+	
+	// get the named file, convert it to HTML & display it
+	// after loading the new markdown, remember to add the event handler
+	function loadMarkDown(file) {
+		$.get(file, function (data) {
+			var converter = new Markdown.Converter();
+			$("markdownContainer").html(converter.makeHtml(data));
+			$("a").off("click", clickMarkdownLink);
+			$("a").on("click", clickMarkdownLink);
+		});
+	}		
+
+	// get the named file & display it
+	function loadHTML(file) {
+		$.get(file, function (data) {
+			$("markdownContainer").html(data);
+			$("a").off("click", clickMarkdownLink);
+			$("a").on("click", clickMarkdownLink);
+		});
+	}
 </script>
         <script type="text/javascript" src="phonegap.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
