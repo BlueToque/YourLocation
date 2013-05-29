@@ -1,0 +1,23 @@
+{
+	"1" : {
+		"Title" : "Reponses by Device Type",
+		"Url" : "blog/2013-03-12-Reponses-by-Device-Type.md",
+		"PostDate" : "2013-03-12",
+		"Author" : "YourLo.ca/tion",
+		"Description" : "A summary of some 400 responses to YouLo.ca/tion showing device types used to test the service",
+		"Image" : "img/ResponsesByDeviceType.png" },
+	"2" : {
+		"Title" : "First Live Use",
+		"Url" : "blog/2013-03-08-First-Live-Use.md",
+		"PostDate" : "2013-03-08",
+		"Author" : "YourLo.ca/tion",
+		"Description" : "The first use of this service in an actual search; not successful, but demonstrating a use case we had not anticipated",
+		"Image" : "img/Location-128.png" },
+	"3": {
+		"Title" : "First public release",
+		"Url" : "blog/2013-03-03-Welcome.md",
+		"PostDate" : "2013-03-03",
+		"Author" : "YourLo.ca/tion",
+		"Description" : "Announcing YourLo.ca/tion; a simple location service to find, share and track your location.",
+		"Image" : "img/Location-128.png" }
+}

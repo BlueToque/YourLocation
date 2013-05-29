@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Product">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>YourLo.ca/tion</title>
+	<link rel="shortcut icon" href="http://YourLo.ca/tion/favicon.ico" />
+	<link rel="canonical" href="http://YourLo.ca/tion" />
+	<link rel="localizations" href="/tion/l10n/localizations.json" type="application/vnd.oftn.l10n+json"/>.
+
+	<meta name="description" content="Locate, request and share your location, used by Search and Rescue to find lost people.">
+	<meta name="viewport" content="width=device-width">
+
+	<!-- http://schema.org  tgs-->
+	<meta itemprop="name" content="YourLo.ca/tion">
+	<meta itemprop="description" content="Simple location tracking for Search and Rescue">
+	<meta itemprop="image" content="img/Location-128.png">
+
+	<!-- Twitter card -->
+	<meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@yourlo_ca_tion">
+    <meta name="twitter:url" content="http://YourLo.ca/tion">
+    <meta name="twitter:title" content="A simple service used to request someone's location">
+    <meta name="twitter:description" content="Locate, request and track your location. A service used by Search and Rescue and other individuals and agencies to find someone's location using their smart phone">
+    <meta name="twitter:image" content="http://YourLo.ca/tion/img/Location-256.png">
+	
+	<!-- Facebook Open Graph tags -->
+	<meta property="og:image" content="http://YourLo.ca/tion/img/Location-256.png"/>
+	<meta property="og:title" content="YourLo.ca/tion"/>
+	<meta property="og:type" content="blog"/>
+	<meta property="og:url" content="http://YourLo.ca/tion"/>
+	
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<style>
+		body {
+			padding-top: 60px;
+			padding-bottom: 40px;
+		}
+	</style>
+	<link rel="stylesheet" href="css/bootstrap-responsive.min.css">
+	<link rel="stylesheet" href="css/main.css">
+	<script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+</head>
+<body>
+	<!--[if lt IE 7]>
+		<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+	<![endif]-->
+	<div id="navbar"></div>
+
+	<div class="container">
+		<h1 id="title">l10n.js demo</h1>
+		<p id="info">Your locale is unsupported.</p>
+		<div id="content"></div>
+		
+		<hr>
+		<footer>
+			<div class="row">
+				<div class="span4">
+				  <span style="float:left">
+					<a href="contact.md"><img src="img/email.png" alt="Contact Us"/></a> 
+					<a href="https://twitter.com/yourlo_ca_tion" target="_blank"><img src="img/twitter.png" alt="Twitter"/></a> 
+					<a href="https://www.facebook.com/pages/Yourlocation/480909735304603" target="_blank"><img src="img/facebook.png" alt="Facebook"/></a>
+					<a href="https://plus.google.com/101292851768036671531?rel=author" target="_blank"><img src="img/googleplus.png" alt="Google+"/></a>
+				  </span>
+				</div>
+				<div class="span4 muted">
+  				  <p style="text-align: center"><a href="http://YourLo.ca/tion">YourLo.ca/tion</a> v<span id="VersionDisplay"></p> 
+				</div>
+				<div class="span4 muted">			  
+				  <p style="float:right">
+					<a href="copyright.md">Copyright</a> &copy; 2013 <a href="http://www.BlueToque.ca" target="_blank">BlueToque.ca</a>   
+				  </p>
+			  </span>
+			</div>
+			</div>
+		</footer>
+
+	</div> <!-- /container -->
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.1.min.js"><\/script>')</script>
+	<script type="text/javascript" src="js/vendor/jquery.cookie.js"></script>
+
+	<script src="js/vendor/bootstrap.min.js"></script>
+	<script src="js/main.js"></script>
+	<script type="text/javascript" src="js/Markdown.Converter.js"></script>
+	<script type="text/javascript" src="js/l10n.js"></script>
+	<script type="text/javascript" src="js/location.js"></script>
+	<script type="text/javascript">
+		if (location.hash) {
+			String.locale = location.hash.substr(1);	
+		}
+
+		/// get an url paramter this way: $.QueryString["param"]
+		(function($) {
+			$.QueryString = (function(a) {
+				if (a == "") return {};
+				var b = {};
+				for (var i = 0; i < a.length; ++i)
+				{
+					var p=a[i].split('=');
+					if (p.length != 2) continue;
+					b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+				}
+				return b;
+			})(window.location.search.substr(1).split('&'))
+		})(jQuery);
+	
+		function getPathFromUrl(url) {
+		  return url.split("?")[0];
+		}
+
+		var localize = function (string, fallback) {
+			var localized = string.toLocaleString();
+			if (localized !== string) {
+				return localized;
+			} else {
+				return fallback;
+			}
+		};
+
+		$(document).ready(function () {
+
+			loadHTML("navbar.html", "#navbar");
+			$("#title").text( localize("%title", $("#title").text()));
+			$("#info").text( localize("%info", $("#info").text()));
+			//document.documentElement.dir = localize("%locale.dir", document.documentElement.dir);
+			//document.documentElement.lang = String.locale || document.documentElement.lang;
+
+			if($.QueryString["locate"])
+				window.location = "locate.md";
+			if($.QueryString["request"])
+				window.location = "request.md";
+			if($.QueryString["show"])
+				window.location = "http://show.yourlo.caétion";
+				
+			// add an event handler to all anchors
+			// test if the link it referrs to ends with ".md"
+			// if it does, process the file as markdown
+			$("a").on("click", clickMarkdownLink);
+
+			if($.QueryString["md"]){
+				loadMarkDown($.QueryString["md"]); 
+				var id=$.QueryString["md"];
+				id=id.substring(0,id.indexOf('.'));
+				$("#"+id).addClass("active");}
+			else {
+				loadHTML("main.html","#content"); 
+				$("#home").addClass("active"); }
+
+			$("#VersionDisplay").text(LOCATION_VERSION);		
+
+			//breadcrumbs();
+		});
+
+		// when you click on a markdown link, load the file
+		// if it's just a regular link do nothing
+		function clickMarkdownLink(event)
+		{
+			if (/.md$/.test(event.currentTarget.href)) {
+				var origin=getPathFromUrl(window.location.href);
+				var index=origin.lastIndexOf("/");
+				origin= origin.substr(0, index+1);
+				var filename = event.currentTarget.href.replace(origin,"");
+				window.location = origin+"?md="+ filename;
+				return false;
+			}
+			return true;
+		}
+
+		// get the named file, convert it to HTML & display it
+		// after loading the new markdown, remember to add the event handler
+		function loadMarkDown(file) {
+			$.get(file, function (data) {
+				var converter = new Markdown.Converter();
+				$("#content").html(converter.makeHtml(data));
+				$("a").off("click", clickMarkdownLink);
+				$("a").on("click", clickMarkdownLink);
+			});
+		}
+
+		// get the named file & display it
+		function loadHTML(file, id) {
+			$.get(file, function (data) {
+				$(id).html(data);
+				$("a").off("click", clickMarkdownLink);
+				$("a").on("click", clickMarkdownLink);
+			});
+		}
+
+	</script>
+
+	<script type="text/javascript">
+
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-38882607-1']);
+	  _gaq.push(['_setDomainName', 'yourlo.ca']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+
+	</script>
+</body>
+</html>

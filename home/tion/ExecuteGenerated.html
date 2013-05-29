@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>YourLo.ca/tion finder</title>
+	<link rel="shortcut icon" href="http://YourLo.ca/tion/favicon.ico" />
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width">
+	<script type="text/javascript" src="js/geog.js"></script>
+	<script type="text/javascript" src="js/location.js"></script>
+</head>
+<body>
+	<a href="http://YourLo.ca/tion">
+		<img src="img/Location-64.png" align="left"  hspace="10"  />
+	</a>
+	<div id="NameContainer">
+		<em><span id="RequestNameDisplay"></span></em> has requested your location using this service. 
+		This page will attempt to determine your location and send it to the requesting party.
+		To make this work, when prompted you need to agree to let this page access your location.
+	</div>
+	<div id="MessageContainer">
+		<p>They have included the following message:<br/> <em><span id="RequestMessageDisplay" /></span></em>
+	</div>
+
+<div id="location">
+<div id="statusMessage"></div>
+<pre style="width:200px">
+ Position:  <span id="LatitudeDisplay"></span> <span id="LongitudeDisplay"></span>
+ UTM:       <span id="zone"></span> <span id="xPos"></span> <span id="yPos"></span>
+ Accuracy:  <span id="AccuracyDisplay"></span> meters 
+</pre>	
+<br/>
+<span id="AgentDisplay" style="display:none;" ></span>
+</div>
+
+	<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+	<form method="post" action="https://script.google.com/macros/s/AKfycbw2jPsUXgZDzlOhdKiUwE7-V_kR4p9lLsXRwgRmB-CTsIyjnlUf/exec" name="theForm" id="theForm" target="hidden_iframe" id="GoogleForm">
+	  <input type="hidden" name="From" id="From" />
+	  <input type="hidden" name="Subject" id="Subject" />
+	  <input type="hidden" name="Email" id="Email" />
+	  <input type="hidden" name="RequestMessage" id="RequestMessage"/>
+	  <textarea name="Message" id="Message" rows="4" cols="50" style="display:none;"></textarea>
+	  <input type="hidden" name="Agent" id="Agent"/>
+	  <input type="hidden" name="IPAddress" id="IPAddress"/>
+	  <input type="hidden" name="Version" id="Version"/>
+	  <input type="button" value="Submit" class="submit" onclick="checkBeforeSubmit();" />
+	  <input type="button" value="Reload" class="other" onclick="reload();" />	
+	  <span id="success"></span>
+	  </div>
+	</form>
+	<p> 
+		<a id="mapsLink" title="Click to see on map" href="#">Show</a> |
+		<a id="emailLink" title="Click to manually email" href="#">Email</a>
+	</p>
+
+	<p>
+		<small>
+			<a href="http://YourLo.ca/tion?md=about.md">About</a> <b>|</b>
+			Version <span id="VersionDisplay"></span>  <b>|</b>
+			<em>Copyright &copy; 2013 <a href="http://www.BlueToque.ca">BlueToque Software</a></em>
+		</small>
+	</p>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.0.min.js"><\/script>')</script>
+	<script src="js/main.js"></script>
+
+	<script type="text/javascript">
+		// get an url paramter this way: $.QueryString["param"]
+		(function($) {
+			$.QueryString = (function(a) {
+				if (a == "") return {};
+				var b = {};
+				for (var i = 0; i < a.length; ++i)
+				{
+					var p=a[i].split('=');
+					if (p.length != 2) continue;
+					b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+				}
+				return b;
+			})(window.location.search.substr(1).split('&'))
+		})(jQuery);
+
+		function getPathFromUrl(url) { return url.split("?")[0]; }
+
+		$(document).ready(function () {
+			// hook the map and email buttons
+			$('#emailLink').click(function(){ LocalEmailLocation(); return false; });
+			$('#mapsLink').click(function(){ ShowLocation(); return false; });
+
+			// set the user agent display and the form element
+			$("#AgentDisplay").text(navigator.userAgent);
+			$("#Agent").val(navigator.userAgent);
+
+			// set the version display and the form element
+			$("#VersionDisplay").text(LOCATION_VERSION);
+			$("#Version").val(LOCATION_VERSION);
+
+			// default toggle off certain elements
+			$("#NameContainer").toggle();
+			$("#MessageContainer").toggle();
+			//$("#statusMessage").toggle();
+			
+			$("#From").val($.QueryString["from"]);
+			$("#Subject").val("Your Lo.ca/tion");
+			$("#Email").val($.QueryString["email"]);
+			$("#RequestMessage").val($.QueryString["message"]);
+
+			if($.QueryString["from"])
+			{
+				$("#NameContainer").toggle();
+				$("#RequestNameDisplay").text($.QueryString["from"]);
+			}
+			if($.QueryString["message"])
+			{			
+				$("#MessageContainer").toggle();
+				$("#RequestMessageDisplay").text($.QueryString["message"]);
+			}
+			
+			reload();	
+		});
+
+		function reload()	{
+			//$("#success").text("");		
+			$("#statusMessage").text("Loading...");
+
+			//prepareGeolocation();		
+			doGeolocation();	
+		}	
+
+		function doGeolocation() {
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(
+					positionSuccess, 
+					positionError,
+					{timeout:10000, enableHighAccuracy:true});		
+			} else {
+				positionError(-1);
+			}
+		}
+
+		function positionError(err) {
+			var msg;
+			switch(err.code) {
+				case err.UNKNOWN_ERROR: msg = "Unable to find your location"; break;
+				case err.PERMISSION_DENINED: msg = "Permission denied in finding your location"; break;
+				case err.POSITION_UNAVAILABLE: msg = "Your location is currently unknown"; break;
+				case err.BREAK: msg = "Attempt to find location took too long"; break;
+				default: msg = "Location detection not supported in browser";
+			}
+			$("#statusMessage").text(msg);
+			//$("#statusMessage").toggle();
+
+			$("#Message").val("The subject loaded the web page on\n"
+				+ "     "+ new Date() + "\n"
+				+ "and their location <b>could not be determined</b><br/>\n" 
+				+"The message was:\n"
+				+ "\"" + msg + "\""
+			);
+		}
+
+		function positionSuccess(position) {
+			var coords = position.coords || position.coordinate || position;
+
+			$("#LatitudeDisplay").text(coords.latitude.toFixed(5));
+			$("#LongitudeDisplay").text(coords.longitude.toFixed(5));
+			$("#AccuracyDisplay").text(coords.accuracy);
+
+			$("#Latitude").val(coords.latitude);
+			$("#Longitude").val(coords.longitude);
+			$("#Accuracy").val(coords.accuracy);
+			
+			convertToUTM(coords.latitude,coords.longitude);
+			
+			$("#statusMessage").text("Location found on " + new Date());	
+			
+			if( $.QueryString["from"] &&
+				$.QueryString["email"]){
+				$("#Message").val("The subject loaded the web page at\n" + GetLocationMessage());
+				doSubmit();
+			}			
+		}
+
+		function LocalEmailLocation() {
+			EmailLocation($("#Email").val());
+		}
+		function ShowLocation() {
+			window.open(GetShowLocationUrl() ,'_blank')
+		}
+
+		function GetLocationMessage()
+		{
+			return "     "+ new Date() + "\n"
+			+ "and their location was determined to be:\n\n"
+			+ $("#location").html() +"<br/>"
+			+ "To see this on a map, <a href=\""+ GetShowLocationUrl() +"\">click here</a><br/>"
+			+ "For help interpreting these results, <a href=\"http://YourLo.ca/tion/?md=interpreting.md\">click here</a>";
+		}
+		
+		function checkBeforeSubmit(){
+			$("#Message").val("The subject manually submitted the form on\n" + GetLocationMessage());
+			doSubmitAlert();
+		}
+
+		function doSubmit(){
+			document.getElementById('theForm').submit();
+			document.getElementById('success').innerHTML='Submitted';
+		}
+
+		function doSubmitAlert(){
+			doSubmit();
+			alert("Your location has been submitted");			
+		}
+
+		function convertToUTM(lat, lon)
+		{
+			var xy = new Array(2);
+
+			// Compute the UTM zone.
+			var zone = Math.floor ((lon + 180.0) / 6) + 1;
+
+			zone = LatLonToUTMXY (DegToRad (lat), DegToRad (lon), zone, xy);
+
+			$("#zone").text(zone);
+			$("#xPos").text(xy[0].toFixed(0));
+			$("#yPos").text(xy[1].toFixed(0));
+		}
+	</script>
+	
+	<script>
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-38882607-1']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+	</script>
+</body>
+</html>

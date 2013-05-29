@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>SAR Location Finder</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width">
+
+	<!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+	<!-- start point was the whereami application:
+		http://gmaps-samples-v3.googlecode.com/svn/trunk/geolocate/geolocate.html
+	-->
+	<link rel="stylesheet" href="css/main.css">
+	<script src="js/vendor/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+	<script  type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=true"></script>
+	<script type="text/javascript" src="js/geometa.js"></script>
+</head>
+<body>
+
+	<div id="location">
+		<p>Latitude = <span id="latitude1"> </span>, </p>
+		<p>Longitude = <span id="longitude1"> </span>, </p>
+		<p>Accuracy = <span id="accuracy1"> </span>,<span id="agent1" style="display:none" ></span></p>
+		
+	</div>
+	<!-- Add your site or application content here -->
+
+	<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
+	<form method="post" action="https://script.google.com/macros/s/AKfycbzkIk4f9jhLZ2HkbAaOaTVuvL7X3Th-DsaMvSX4kaz3A-oXE3A/exec" name="theForm" id="theForm" target="hidden_iframe" id="GoogleForm">
+	  <input type="hidden" name="Latitude" id="Latitude" />
+	  <input type="hidden" name="Longitude" id="Longitude"/>
+	  <input type="hidden" name="Accuracy" id="Accuracy"/>
+	  <input type="hidden" name="Agent" id="Agent"/>
+	  <input type="hidden" name="IPAddress" id="IPAddress"/>
+	  <input type="hidden" name="Version" id="Version"/>
+	  <p>Email Address (optional): <input type="text" name="Email" id="Email" /></p>
+	  <p>Comment/Actual Location: <input type="text" name="Comment" id="Comment" /></p>
+	  <input type="button" value="Submit" class="submit" onclick="checkBeforeSubmit();" />
+	  <span id="success"></span>
+	  </div>
+	</form>
+	<p> <a id="mapsLink" title="Click to see on map" href="#">Map this</a></p>
+
+	<p align="center">
+		<a href="readme.html">About</a> <b>|</b>
+		Version <span id="version1"></span>  <b>|</b>
+		<em>Copyright &copy; 2013 <a href="http://www.BlueToque.ca">BlueToque Software</a></em>
+	</p>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.0.min.js"><\/script>')</script>
+	<script src="js/main.js"></script>
+
+	<script type="text/javascript">
+		$(document).ready(function () {
+			$('#emailLink').click(function(){ EmailPosition(); return false; });
+			$('#mapsLink').click(function(){ GoogleMaps(); return false; });
+			$("#agent1").text(navigator.userAgent);
+			$("#Agent").val(navigator.userAgent);
+			
+			$("#version1").text("1.1");
+			$("#Version").val("1.1");
+			
+
+		  if (window['google'] && google.loader.ClientLocation) {
+			$("#latitude1").text(google.loader.ClientLocation.latitude);
+			$("#longitude1").text(google.loader.ClientLocation.longitude);
+			}
+			prepareGeolocation();
+			doGeolocation();
+		});
+		
+		$.ajax({
+			type: "GET",
+			url: "http://api.hostip.info/get_json.php",
+			dataType: "json",
+			success: function(json) {
+				$("#IPAddress").val(json.ip);
+			},
+			error: function (request, type, status)
+			{
+			   //alert('[request: ' + request.statusText + '] [type: ' + type + '] [status: ' + status + ']');
+			 }
+		});
+		
+		function doGeolocation() {
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(positionSuccess, positionError);
+			} else {
+				positionError(-1);
+			}
+		}
+
+		function positionError(err) {
+			var msg;
+			switch(err.code) {
+			  case err.UNKNOWN_ERROR:
+				msg = "Unable to find your location";
+				break;
+			  case err.PERMISSION_DENINED:
+				msg = "Permission denied in finding your location";
+				break;
+			  case err.POSITION_UNAVAILABLE:
+				msg = "Your location is currently unknown";
+				break;
+			  case err.BREAK:
+				msg = "Attempt to find location took too long";
+				break;
+			  default:
+				msg = "Location detection not supported in browser";
+			}
+			document.getElementById('info').innerHTML = msg;
+		  }
+
+		function positionSuccess(position) {
+			var coords = position.coords || position.coordinate || position;
+
+			$("#latitude1").text(coords.latitude);
+			$("#longitude1").text(coords.longitude);
+			$("#accuracy1").text(coords.accuracy);
+
+			$("#Latitude").val(coords.latitude);
+			$("#Longitude").val(coords.longitude);
+			$("#Accuracy").val(coords.accuracy);
+		  }
+		  
+		  function EmailPosition() {
+			window.location = "mailto:michael.f.coyle@gmail.com"
+				+ "?subject=My Location"
+				+" &body="+$("#location").text();
+		  }
+		  
+		  function GoogleMaps() {
+			window.location="https://maps.google.com/maps?q="+$("#latitude").text()+ "+" + $("#longitude").text() + "&t=m&z=16";
+		  }
+		  
+		  function checkBeforeSubmit(){
+			document.getElementById('theForm').submit();
+			document.getElementById('success').innerHTML='Submitted';
+		 }
+	</script>
+	<script>
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-38882607-1']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+	</script>
+</body>
+</html>

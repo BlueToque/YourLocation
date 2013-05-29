@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<rss version="2.0">
+
+<channel>
+  <title>YourLo.ca/tion</title>
+  <link>http://YourLo.ca/tion</link>
+  <description>Free web building tutorials</description>
+  
+  <item>
+    <title>RSS Tutorial</title>
+    <link>http://YourLo.ca/tion/blog</link>
+    <description>New RSS tutorial on W3Schools</description>
+    <pubDate>Mon, 04 Mar 2013 08:00:00 -0800 </pubDate>
+  </item>
+  
+</channel>
+
+</rss>  

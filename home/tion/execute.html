@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+<head itemscope itemtype="http://schema.org/Product">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>YourLo.ca/tion finder</title>
+	<link rel="shortcut icon" href="http://YourLo.ca/tion/favicon.ico" />
+	<meta name="description" content="Locate, request and share your location, used by Search and Rescue to find lost people.">
+	<meta name="viewport" content="width=device-width">
+	
+	<!-- http://schema.org  tgs-->
+	<meta itemprop="name" content="YourLo.ca.tion">
+	<meta itemprop="description" content="Simple location tracking for Search and Rescue">
+	<meta itemprop="image" content="img/Location-128.png">
+	
+	<script type="text/javascript" src="js/geog.js"></script>
+	<script type="text/javascript" src="js/location.js"></script>
+
+</head>
+<body>
+    <input type="button" id="authorize-button" value="Authorize"><br>
+    <input type="button" id="insert-data" value="Insert data">
+        <!--disabled="disabled"> -->
+    <p id="insert-data-output"><i>insert response goes here...</i></p><br>
+
+	<a href="http://YourLo.ca/tion">
+		<img src="img/Location-64.png" align="left"  hspace="10"  />
+	</a>
+	<div id="NameContainer">
+		<em><span id="RequestNameDisplay"></span></em> has requested your location using this service. 
+		This page will attempt to determine your location and send it to the requesting party.
+		To make this work, when prompted you need to agree to let this page access your location.
+	</div>
+	<div id="MessageContainer">
+		<p>They have included the following message:<br/> <em><span id="RequestMessageDisplay" /></span></em>
+	</div> 
+
+<pre>
+	ID:		<span id="ID"></span>
+	Timestamp:	<span id="Timestamp"></span>
+	User:		<span id="User"></span>
+	Position:	<span id="Latitude"></span> <span id="Longitude"></span>
+	Accuracy:	<span id="Error"></span> meters 
+	UTM:		<span id="UTM"></span>
+	Agent:		<span id="UserAgent"></span>
+	IPAddress:	<span id="IPAddress"></span>
+	Version:	<span id="Version"></span>
+	Message:	<span id="Message"></span>
+</pre>
+	
+	<p>
+		<small>
+			<a href="http://YourLo.ca/tion?md=about.md">About</a> <b>|</b>
+			Version <span id="VersionDisplay"></span>  <b>|</b>
+			<em>Copyright &copy; 2013 <a href="http://www.BlueToque.ca">BlueToque Software</a></em>
+		</small>
+	</p>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script>window.jQuery || document.write('<script src="js/vendor/jquery-1.9.0.min.js"><\/script>')</script>
+	<script src="js/main.js"></script>
+
+	<script type="text/javascript">
+		// get an url paramter this way: $.QueryString["param"]
+		(function($) {
+			$.QueryString = (function(a) {
+				if (a == "") return {};
+				var b = {};
+				for (var i = 0; i < a.length; ++i)
+				{
+					var p=a[i].split('=');
+					if (p.length != 2) continue;
+					b[p[0]] = decodeURIComponent(p[1].replace(/\+/g, " "));
+				}
+				return b;
+			})(window.location.search.substr(1).split('&'))
+		})(jQuery);
+
+		function getPathFromUrl(url) { return url.split("?")[0]; }
+
+		$(document).ready(function () {
+
+			$('#insert-data').click(function(){  insertData(); return false;});
+			$('#select-data').click(function(){  selectData(); return false;});
+
+			$("#UserAgent").text(navigator.userAgent);
+			$("#IPAddress").text("192.168.1.1");
+			$("#Version").text(LOCATION_VERSION);
+			$("#ID").text(guid());
+			$("#User").text("Test");
+			
+			reload();	
+		});
+
+		function reload()	{
+			doGeolocation();	
+		}	
+
+		function doGeolocation() {
+			if (navigator.geolocation) {
+				navigator.geolocation.getCurrentPosition(
+					positionSuccess, 
+					positionError,
+					{timeout:10000, enableHighAccuracy:true});		
+			} else {
+				positionError(-1);
+			}
+		}
+
+		function positionError(err) {
+			var msg;
+			switch(err.code) {
+				case err.UNKNOWN_ERROR: msg = "Unable to find your location"; break;
+				case err.PERMISSION_DENINED: msg = "Permission denied in finding your location"; break;
+				case err.POSITION_UNAVAILABLE: msg = "Your location is currently unknown"; break;
+				case err.BREAK: msg = "Attempt to find location took too long"; break;
+				default: msg = "Location detection not supported in browser";
+			}
+			$("#Message").text(msg);
+
+		}
+
+		function positionSuccess(position) {
+			var coords = position.coords || position.coordinate || position;
+
+			$("#Latitude").text(coords.latitude);
+			$("#Longitude").text(coords.longitude);
+			$("#Error").text(coords.accuracy);
+			$("#Timestamp").text(position.timestamp);
+			
+			convertToUTM(coords.latitude,coords.longitude);
+			
+			$("#Message").text("Location found on " + new Date());	
+			
+			//insertData();		
+		}
+
+		function convertToUTM(lat, lon)
+		{
+			var xy = new Array(2);
+
+			// Compute the UTM zone.
+			var zone = Math.floor ((lon + 180.0) / 6) + 1;
+
+			zone = LatLonToUTMXY (DegToRad (lat), DegToRad (lon), zone, xy);
+			$("#UTM").text(zone +" "+xy[0].toFixed(0)+" "+xy[1].toFixed(0));
+		}
+		
+	  // The clientId and apiKey are available at
+      // https://code.google.com/apis/console. For more information, see
+      // http://code.google.com/p/google-api-javascript-client/wiki/Authentication.
+      var clientId = '30873343071.apps.googleusercontent.com';
+      var apiKey = 'AIzaSyAtCwsyA1f7IHz55rjOvXfbZZ-7SE_Swo4';
+
+      var scopes = 'https://www.googleapis.com/auth/fusiontables';
+      var tableId ="1HAkdyN8Ym0X5OlNoK1A9ta-WIdjIPOP62Z9eCKE";
+
+      // Initialize the client, set onclick listeners.
+      function initialize() {
+        gapi.client.setApiKey(apiKey);
+        //window.setTimeout(function() { auth(true); }, 1);
+      }
+
+      // Run OAuth 2.0 authorization.
+      /*
+      function auth(immediate) {
+        gapi.auth.authorize({
+          client_id: clientId,
+          scope: scopes,
+          immediate: immediate
+        }, handleAuthResult);
+      }
+      
+	// Handle the results of the OAuth 2.0 flow.
+      function handleAuthResult(authResult) {
+        var authorizeButton = document.getElementById('authorize-button');
+        var insertDataButton = document.getElementById('insert-data');
+        if (authResult) {
+          authorizeButton.disabled = true;
+          insertDataButton.disabled = false;
+        } else {
+          authorizeButton.disabled = false;
+          authorizeButton.onclick = function() { auth(false); return false; };
+        }
+      }
+      */
+
+ // Run a request to INSERT data.
+      function insertData() {
+        var insert = [];
+        insert.push('INSERT INTO ');
+        insert.push(tableId);
+        insert.push(' (ID, Timestamp, User, Latitude, Longitude, Error, UTM, UserAgent, IPAddress, Version, Message) VALUES (');
+        insert.push("'" + $("#ID").text() + "', "); // string value with single quotes
+        insert.push($("#Timestamp").text()+ ", ");
+        insert.push("'" + $("#User").text()+ "', ");
+        insert.push($("#Latitude").text()+ ", ");
+        insert.push($("#Longitude").text()+ ", ");
+        insert.push($("#Error").text()+ ", ");
+        insert.push("'" + $("#UTM").text()+ "', ");
+        insert.push("'" + $("#UserAgent").text()+ "', ");
+        insert.push("'" + $("#IPAddress").text()+ "', ");
+        insert.push($("#Version").text()+ ", ");
+        insert.push("'" + $("#Message").text()+ "'");
+        insert.push(')');
+		var q=insert.join('');
+        
+        query(q);
+      }
+      
+      // Send an SQL query to Fusion Tables.
+      function query(query) {
+        var lowerCaseQuery = query.toLowerCase();
+        var path = '/fusiontables/v1/query';
+        var callback = function(element) {
+          return function(resp) {
+            var output = JSON.stringify(resp);
+            document.getElementById(element).innerHTML = output;
+          };
+        }
+        if (lowerCaseQuery.indexOf('select') != 0 &&
+            lowerCaseQuery.indexOf('show') != 0 &&
+            lowerCaseQuery.indexOf('describe') != 0) {
+
+          var body = 'sql=' + encodeURIComponent(query);
+          runClientRequest({
+            path: path,
+            body: body,
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'//,
+              //'Content-Length': body.length
+            },
+            method: 'POST'
+          }, callback('insert-data-output'));
+
+        } else {
+          runClientRequest({
+            path: path,
+            params: { 'sql': query }
+          }, callback('select-data-output'));
+        }
+      }
+
+      // Execute the client request.
+      function runClientRequest(request, callback) {
+        var restRequest = gapi.client.request(request);
+        restRequest.execute(callback);
+      }
+	</script>
+	
+	<script>
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-38882607-1']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+	</script>
+	<script src="https://apis.google.com/js/client.js?onload=initialize"></script>
+</body>
+</html>
